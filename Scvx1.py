@@ -7,8 +7,8 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 
 # Input
 
-P_des = np.array(([[12, 12],[15, 15]]))
-P_ini = np.array(([[0, 0],[0, 0]]))
+P_des = np.array(([[12, 12],[0, 0]]))
+P_ini = np.array(([[0, 0],[15, 15]]))
 
 Ts = 0.1  # Sampling time
 T_end = 12  # End time
@@ -18,7 +18,7 @@ T = int(T_end / Ts + 1)  # Total time steps
 Num_obs = 2
 obs_center = np.zeros((T, 2 * Num_obs))
 for i in range(T):  # obs centers
-    obs_center[i, :] = np.array([3 - 0.0 * i, 2 - 0.0 * i, 7 + 0.0 * i, 10 + 0.0 * i])
+    obs_center[i, :] = np.array([3 + 0.0 * i, 3 - 0.0 * i, 7 + 0.0 * i, 7 + 0.0 * i])
 
 # Num_obs = 1
 # obs_center = np.zeros((T, 2 * Num_obs))
@@ -97,20 +97,25 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
 
         # Define variables for optimization
         w1 = cp.Variable((m , N - 1))
-        v1 = cp.Variable((n , N - 1))
-        d1 = cp.Variable((n , N))
+        #v1 = cp.Variable((n , N - 1))
+        #d1 = cp.Variable((n , N))
         s1 = cp.Variable(((N) * Num_obs, 1))
-
+        d = cp.Variable((n*Num_agent, N))
+        v = cp.Variable((n*Num_agent, N - 1))
+        s = cp.Variable(((N) * Num_obs, Num_agent))
         w2 = cp.Variable((m * 1, N - 1))
-        v2 = cp.Variable((n * 1, N - 1))
-        d2 = cp.Variable((n * 1, N))
+        #v2 = cp.Variable((n * 1, N - 1))
+        #d2 = cp.Variable((n * 1, N))
         s2 = cp.Variable(((N) * Num_obs, 1))
         # Define the cost function
 
+        # Linear_cost = (1 * cp.norm(((u[0:2,:] + w1)), 2) + 1 * lambda_param * cp.sum(
+        #     cp.sum(cp.abs(v1))) + 1 * lambda_param * cp.sum(cp.pos(s1)) +
+        #                1 * cp.norm(((u[2:4,:] + w2)), 2) + 1 * lambda_param * cp.sum(
+        #     cp.sum(cp.abs(v2))) + 1 * lambda_param * cp.sum(cp.pos(s2)))
         Linear_cost = (1 * cp.norm(((u[0:2,:] + w1)), 2) + 1 * lambda_param * cp.sum(
-            cp.sum(cp.abs(v1))) + 1 * lambda_param * cp.sum(cp.pos(s1)) +
-                       1 * cp.norm(((u[2:4,:] + w2)), 2) + 1 * lambda_param * cp.sum(
-            cp.sum(cp.abs(v2))) + 1 * lambda_param * cp.sum(cp.pos(s2)))
+            cp.sum(cp.abs(v))) + 1 * lambda_param * cp.sum(cp.pos(s1)) +
+                       1 * cp.norm(((u[2:4,:] + w2)), 2) + 1 * lambda_param * cp.sum(cp.pos(s2)))
 
 
         # Linear_cost = (cp.sum(cp.abs(u[0:2,:] + w1)) + 1 * lambda_param * cp.sum(
@@ -120,22 +125,32 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
         #
 
 
-        constraints = [d1[:, 0] == np.zeros(n*1)]
+        constraints = [d[0:4, 0] == np.zeros(n*1)]
         #constraints = [d2[:, 0] == np.zeros(n * 1)]
-        constraints.append(d2[:, 0] == np.zeros(n * 1))
+        constraints.append(d[4:8, 0] == np.zeros(n * 1))
         E = np.eye(n)
 
         for i in range(N - 1):
+            # j = 0
+            # constraints.append(
+            #     X[n * j:n * j + n, i + 1] + d1[:, i + 1] == (
+            #             Ad @ X[n * j:n * j + n, i] + Ad @ d1[:, i]) + (
+            #             Bd @ u[m * j:m * j + m, i] + Bd @ w1[:, i]) + E @ v1[:, i])
+            # j = 1
+            # constraints.append(
+            #     X[n * j:n * j + n, i + 1] + d2[:, i + 1] == (
+            #             Ad @ X[n * j:n * j + n, i] + Ad @ d2[:, i]) + (
+            #             Bd @ u[m * j:m * j + m, i] + Bd @ w2[:, i]) + E @ v2[:, i])
             j = 0
             constraints.append(
-                X[n * j:n * j + n, i + 1] + d1[:, i + 1] == (
-                        Ad @ X[n * j:n * j + n, i] + Ad @ d1[:, i]) + (
-                        Bd @ u[m * j:m * j + m, i] + Bd @ w1[:, i]) + E @ v1[:, i])
+                X[n * j:n * j + n, i + 1] + d[0:4, i + 1] == (
+                        Ad @ X[n * j:n * j + n, i] + Ad @ d[0:4, i]) + (
+                        Bd @ u[m * j:m * j + m, i] + Bd @ w1[:, i]) + E @ v[0:4, i])
             j = 1
             constraints.append(
-                X[n * j:n * j + n, i + 1] + d2[:, i + 1] == (
-                        Ad @ X[n * j:n * j + n, i] + Ad @ d2[:, i]) + (
-                        Bd @ u[m * j:m * j + m, i] + Bd @ w2[:, i]) + E @ v2[:, i])
+                X[n * j:n * j + n, i + 1] + d[4:8, i + 1] == (
+                        Ad @ X[n * j:n * j + n, i] + Ad @ d[4:8, i]) + (
+                        Bd @ u[m * j:m * j + m, i] + Bd @ w2[:, i]) + E @ v[4:8, i])
             # constraints.append(cp.abs(w[0, i]) <= r_default)
             j = 0
             constraints.append(w1[:, i] <= r_default)
@@ -158,13 +173,13 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
                 constraints.append(
                     2 * R[k] - cp.norm(X[0:2, i] - obs_center[i, 2 * k:+2 * k + 2], 2) -
                     (X[0:2, i] - obs_center[i, 2 * k:+2 * k + 2]).T @
-                    (X[0:2, i] + d1[0:2, i] - obs_center[i, 2 * k:+2 * k + 2]) /
+                    (X[0:2, i] + d[0:2, i] - obs_center[i, 2 * k:+2 * k + 2]) /
                     cp.norm(X[0:2, i] - obs_center[i, 2 * k:+2 * k + 2], 2) <= s1[(N) * k + i, 0]
                 )
                 constraints.append(
                     2 * R[k] - cp.norm(X[4:6, i] - obs_center[i, 2 * k:+2 * k + 2], 2) -
                     (X[4:6, i] - obs_center[i, 2 * k:+2 * k + 2]).T @
-                    (X[4:6, i] + d2[0:2, i] - obs_center[i, 2 * k:+2 * k + 2]) /
+                    (X[4:6, i] + d[4:6, i] - obs_center[i, 2 * k:+2 * k + 2]) /
                     cp.norm(X[4:6, i] - obs_center[i, 2 * k:+2 * k + 2], 2) <= s2[(N) * k + i, 0]
 
                 )
@@ -178,8 +193,8 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
                 constraints.append(s2[(N) * k + i, 0] >= 0)
 
         # Terminal condition
-        constraints.append(X[0:4, N - 1] + d1[:, N - 1] == np.array([P_des[0, 0], P_des[0, 1], 0, 0]))
-        constraints.append(X[4:8, N - 1] + d2[:, N - 1] == np.array([P_des[1, 0], P_des[1, 1], 0, 0]))
+        constraints.append(X[0:4, N - 1] + d[0:4, N - 1] == np.array([P_des[0, 0], P_des[0, 1], 0, 0]))
+        constraints.append(X[4:8, N - 1] + d[4:8, N - 1] == np.array([P_des[1, 0], P_des[1, 1], 0, 0]))
         # Define the problem
         problem = cp.Problem(cp.Minimize(Linear_cost), constraints)
         if interation >=5:
@@ -192,13 +207,14 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
         w2_val = w2.value
         w_val=np.vstack((w1_val,w2_val))
 
-        v1_val=v1.value
-        v2_val = v2.value
-        v_val=np.vstack((v1_val,v2_val))
-
-        d1_val=d1.value
-        d2_val = d2.value
-        d_val=np.vstack((d1_val,d2_val))
+        # v1_val=v1.value
+        # v2_val = v2.value
+        # v_val=np.vstack((v1_val,v2_val))
+        v_val=v.value
+        # d1_val=d1.value
+        # d2_val = d2.value
+        # d_val=np.vstack((d1_val,d2_val))
+        d_val=d.value
 
         s1_val=s1.value
         s2_val = s2.value
@@ -256,12 +272,12 @@ def trajectory_gen(P_des, P_ini, obs_center, R, T, Num_agent, Num_obs):
                 for k in range(Num_obs):
                     ss[(N-1)*k+i,J] = LA.norm(X[n * J:n*J + 2, i] - obs_center[i, 2 * k:+2 * k + 2], 2) - R[k]
         print(np.min(ss))
-        if (np.min(ss) >= 0) and (interation > 10):
+        if (np.min(ss) >= 0) and (interation > 15):
 
             break
-        # if  (interation > 10):
-        #
-        #     break
+        if  (interation > 18):
+
+            break
         # print(np.min(ss) )
         print('Iteration:  ', interation + 1)
 
