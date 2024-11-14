@@ -3,11 +3,11 @@ clear all
 clf
 
 % Close any existing parallel pool to ensure a fresh start
-delete(gcp('nocreate'));
+%delete(gcp('nocreate'));
 
 % Start a process-based pool with a limited number of workers
 numWorkers = 12;
-parpool('Processes', numWorkers);
+%parpool('Processes', numWorkers);
 
 A=[0 0;0 0];
 B=[1 0;0 1];
@@ -167,8 +167,15 @@ end
 % Wait for both tasks to complete and fetch the results
 % x1 = fetchOutputs(f1);
 % x2 = fetchOutputs(f2);
-
-
+%%
+% [Cost_1,X_out1]=traj_gen(3,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
+% %%
+% for i=1:N
+% subplot(2,2,1)
+% plotting(X_out1,obs_center,R_plot,i)
+% 
+% 
+% end
 %% Beginning of decentralized SCvx
 
 for iteration=1:40
@@ -182,6 +189,7 @@ for iteration=1:40
         [Cost_2,X_out2]=fetchOutputs(f2);
         [Cost_3,X_out3]=fetchOutputs(f3);
         [Cost_4,X_out4]=fetchOutputs(f4);
+        X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
         % [X_out1,u_out1]=traj_gen(1,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
         % [X_out2,u_out2]=traj_gen(2,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
         % [X_out3,u_out3]=traj_gen(3,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
@@ -191,25 +199,41 @@ for iteration=1:40
         % [X_out2,u_out2]=traj_gen(2,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
         % [X_out3,u_out3]=traj_gen(3,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
         % [X_out4,u_out4]=traj_gen(4,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        % f1=parfeval(@traj_gen,2,1,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        % [Cost_1,X_out1]=fetchOutputs(f1);
+        % disp("Cost 1    " + Cost_1)
+        % X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
+        % f2=parfeval(@traj_gen,2,2,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        % [Cost_2,X_out2]=fetchOutputs(f2);
+        % disp("Cost 2    " + Cost_2)
+        % X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
+        % f3=parfeval(@traj_gen,2,3,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        % [Cost_3,X_out3]=fetchOutputs(f3);
+        % disp("Cost 3    " + Cost_3)
+        % X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
+        % f4=parfeval(@traj_gen,2,4,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        % [Cost_4,X_out4]=fetchOutputs(f4);
+        % disp("Cost 4    " + Cost_4)
+        % X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
+
+
         f1=parfeval(@traj_gen,2,1,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
-        [Cost_1,X_out1]=fetchOutputs(f1);
-        disp("Cost 1" + Cost_1)
-        X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
         f2=parfeval(@traj_gen,2,2,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
-        [Cost_2,X_out2]=fetchOutputs(f2);
-        disp("Cost 2" + Cost_2)
-        X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
         f3=parfeval(@traj_gen,2,3,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
-        [Cost_3,X_out3]=fetchOutputs(f3);
-        disp("Cost 3" + Cost_3)
-        X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
         f4=parfeval(@traj_gen,2,4,Ad,Bd,X_out,X0,u,R_plot,obs_center,final,Laplacian);
+        [Cost_1,X_out1]=fetchOutputs(f1);
+        [Cost_2,X_out2]=fetchOutputs(f2);
+        [Cost_3,X_out3]=fetchOutputs(f3);
         [Cost_4,X_out4]=fetchOutputs(f4);
-        disp("Cost 4" + Cost_4)
+
+        disp("Cost 1    " + Cost_1)
+        disp("Cost 2    " + Cost_2)
+        disp("Cost 3    " + Cost_3)
+        disp("Cost 4    " + Cost_4)
         X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
     end
     
-    X_out=[X_out1(3:4,:);X_out2(3:4,:);X_out3(3:4,:);X_out4(3:4,:)];
+
     %%
 
     % figure(2)
@@ -242,7 +266,6 @@ subplot(2,2,4)
 plotting(X_out4,obs_center,R_plot,i)
 
 end
-
 
 %%
 % [X_out,u_out]=fetchOutputs(f2);
@@ -439,9 +462,9 @@ for iteration=1:5
     %     1000*lambda*sum(sum(abs(v)))  + lambda*(   sum(sum(max(s,0)))   ))
 
     minimize (  100*norm((u+w),1) + norm((X+d-X0),1) +  ...
-        norm((X(1:2,:)+d(1:2,:)-X_true(1:2,:)),1)+ ...
-        norm((X(5:6,:)+d(5:6,:)-X_true(3:4,:)),1) + ...
-        1000*lambda*sum(sum(abs(v)))  + lambda*(   sum(sum(max(s,0)))   ))
+        lambda*0.01*norm((X(1:2,:)+d(1:2,:)-X_true(1:2,:)),1)+ ...
+        lambda*0.01*norm((X(5:6,:)+d(5:6,:)-X_true(3:4,:)),1) + ...
+        1000*lambda*sum(sum(abs(v)))  + 100*lambda*(   sum(sum(max(s,0)))   ))
 
     subject to
     cvx_precision best
@@ -505,9 +528,9 @@ for iteration=1:5
     rho2 = 0.75;
 
     Linear_cost(iteration)=(  100*norm((u+w),1) + norm((X+d-X0),1) +  ...
-        norm((X(1:2,:)+d(1:2,:)-X_true(1:2,:)),1)+ ...
-        norm((X(5:6,:)+d(5:6,:)-X_true(3:4,:)),1) + ...
-        1000*lambda*sum(sum(abs(v)))  + lambda*(   sum(sum(max(s,0)))   ));
+        lambda*0.01*norm((X(1:2,:)+d(1:2,:)-X_true(1:2,:)),1)+ ...
+        lambda*0.01*norm((X(5:6,:)+d(5:6,:)-X_true(3:4,:)),1) + ...
+        1000*lambda*sum(sum(abs(v)))  + 100*lambda*(   sum(sum(max(s,0)))   ));
     if iteration >= 2
         delta_L = (Linear_cost(iteration) - Linear_cost(iteration-1)) / Linear_cost(iteration);
     else
