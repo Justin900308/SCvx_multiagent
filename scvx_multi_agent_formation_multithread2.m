@@ -7,7 +7,7 @@ clf
 
 % Start a process-based pool with a limited number of workers
 numWorkers = 12;
-parpool('Processes', numWorkers);
+%parpool('Processes', numWorkers);
 
 A=[0 0;0 0];
 B=[1 0;0 1];
@@ -123,7 +123,7 @@ u0=u;
 R_obs=2;
 R_agent=1.5;
 
-obs_center=[12,90; ...
+obs_center=[18,18; ...
     X(1:2,1)'; ...
     X(3:4,1)'; ...
     X(5:6,1)'; ...
@@ -176,7 +176,7 @@ end
 % 
 % 
 % end
-%obs_checker(X,Num_agen,obs_center,R)
+% obs_checker(X,Num_agen,obs_center,R)
 
 % for iteration=1:10
 % 
@@ -733,7 +733,7 @@ for iteration=1:10
         break;
     end
 Linear_cost(iteration)
-    if  Linear_cost(iteration)<=2000 && iteration>5
+    if  Linear_cost(iteration)<=2000 && iteration>7
         X_out=X;
         u_out=u;
         last_cost=Linear_cost(iteration);
