@@ -58,7 +58,7 @@ hold on
 
 X(:,1)=[0;0 ;  0;5 ; 0;15   ;  0;10 ];
 %X(:,1)=[20;25 ;  20;20 ; 25;20   ;  25;25 ];
-kp = 2;
+kp = 4;
 kc = 0.5;
 Laplacian = - ones(Num_agen) + Num_agen*eye(Num_agen);
 %
@@ -123,7 +123,7 @@ u0=u;
 R_obs=2;
 R_agent=1.5;
 
-obs_center=[13,9; ...
+obs_center=[18,15; ...
     X(1:2,1)'; ...
     X(3:4,1)'; ...
     X(5:6,1)'; ...
@@ -168,7 +168,7 @@ end
 % x1 = fetchOutputs(f1);
 % x2 = fetchOutputs(f2);
 %%
-% [Cost_1,X_out1]=traj_gen(4,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
+% [Cost_1,X_out1]=traj_gen(3,Ad,Bd,X,X0,u,R_plot,obs_center,final,Laplacian);
 % %%
 % for i=1:N
 % subplot(2,2,1)
@@ -341,7 +341,7 @@ for i=1:N
     ylim([-5 50])
     x_theta=R_plot(1)*cos(theta);
     y_theta=R_plot(1)*sin(theta);
-    plot(obs_center(1,1)+1.5*x_theta,obs_center(1,2)+1.5*y_theta,'r')
+    plot(obs_center(1,1)+1*x_theta,obs_center(1,2)+1*y_theta,'r')
     for j=1:obs_num
         hold on
         x_theta=R_plot(j)*cos(theta);
